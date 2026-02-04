@@ -5,6 +5,8 @@ from IPython.display import clear_output
 import time
 
 def create_grid(size=26):
+    # генерується поле. p=[0.8, 0.2] означає, що живих клітинок буде десь 20%
+    # якщо поставити більше, все занадто швидко вимре від "перенаселення"
     return np.random.choice([0, 1], size=(size, size), p=[0.8, 0.2])
 
 def update_grid(grid):
@@ -13,13 +15,18 @@ def update_grid(grid):
     
     for r in range(rows):
         for c in range(cols):
+            # рахуємо суму сусідів у квадраті 3х3. 
+            # віднімаємо центральну клітину бо вона собі не сусід
             total = int(np.sum(grid[max(0, r-1):min(rows, r+2), 
                                     max(0, c-1):min(cols, c+2)])) - grid[r, c]
             
+            # правило Конвея:
             if grid[r, c] == 1:
+                # жива клітина вмирає якщо сусідів менше 2 або більше 3
                 if total < 2 or total > 3:
                     new_grid[r, c] = 0
             else:
+                # у порожній клітині з'являється життя якщо навколо рівно 3 сусіди
                 if total == 3:
                     new_grid[r, c] = 1
     return new_grid
@@ -27,32 +34,36 @@ def update_grid(grid):
 def visualize_grid(grid, step):
     plt.figure(figsize=(8, 8))
     
+    # кольори для клітинок
     cmap = colors.ListedColormap(['#D3D3D3', '#38761D'])
     
     plt.imshow(grid, cmap=cmap)
     
     size = grid.shape[0]
+    # прибирання цифр з осей
     plt.xticks(np.arange(-.5, size, 1), [])
     plt.yticks(np.arange(-.5, size, 1), [])
     plt.grid(color='white', linestyle='-', linewidth=2)
     
     plt.tick_params(axis='both', which='both', length=0)
     
+    # - чорну рамку навколо графіка
     for spine in plt.gca().spines.values():
         spine.set_visible(False)
     
     plt.title(f"Step: {step}", fontsize=14)
     plt.show()
 
-
 initial_grid = create_grid(26)
 grid = initial_grid.copy()
 
 try:
     for step in range(21):
+        # очищення екрана перед новим кроком
         clear_output(wait=True)
         visualize_grid(grid, step)
         
+        # на першому кроці пауза довша, але потім відображення початкового стану буде нижче
         if step == 0:
             time.sleep(2)
         else:
@@ -66,11 +77,10 @@ except KeyboardInterrupt:
 
 print(f"PROCESS IS STOPPED IN THE STEP {step}")
 
+# початковий стан матриці
 print("\nInitial matrix (Step 0):")
 visualize_grid(initial_grid, 0)
 
-print("\nFinal matrix (Step 20):")
-visualize_grid(grid, 20)
-
+# вивід результату масивом
 print("\nFinal matrix numbers:")
 print(grid)

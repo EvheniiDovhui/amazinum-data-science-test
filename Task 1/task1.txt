@@ -1,0 +1,83 @@
+import random
+import matplotlib.pyplot as plt
+
+# генерується список із 26 випадкових чисел від 0 до 26
+random_values = [random.randint(0, 26) for _ in range(26)]
+
+# з прикладу набір даних
+sample_values = [
+    2, 7, 25, 14, 14, 21, 20, 6, 13, 3, 23, 14, 1,
+    8, 1, 8, 16, 21, 2, 17, 7, 5, 20, 17, 18, 10
+]
+
+def find_deepest_lake(heights):
+    """
+    функція для пошуку параметрів найглибшого озера в рельєфі.
+    озером вважається заглиблення між двома піками, де всі проміжні точки нижчі за краї.
+    """
+    max_depth = 0
+    lake_bounds = (0, 0) # межі озера (ліва та права індекси)
+    lake_bottom = 0      # дно
+    n = len(heights)
+
+    # перебирає всі можливі пари
+    for left in range(n):
+        for right in range(left + 2, n):
+            # рівень води буде той яка вершина нижча на іншу
+            water_level = min(heights[left], heights[right])
+            # середина від піка до піка
+            inside = heights[left + 1:right]
+
+            # перевірка на заглиблення (всі точки всередині мають бути нижче рівня води)
+            if inside and all(h < water_level for h in inside):
+                bottom = min(inside)      # найглибша точку дна
+                depth = water_level - bottom # глибина озера
+                width = right - left      # ширина озера
+
+                # оновлюється результат, якщо знайшлося глибше озеро, 
+                # або якщо глибина така сама, але ширина менша (пріоритет вужчим озерам)
+                if (depth > max_depth) or (depth == max_depth and width < (lake_bounds[1] - lake_bounds[0])):
+                    max_depth = depth
+                    lake_bounds = (left, right)
+                    lake_bottom = bottom
+
+    return max_depth, lake_bounds, lake_bottom
+
+# обчислення результату для прикладу
+depth_result, _, _ = find_deepest_lake(sample_values)
+print("Result for the provided sample:", depth_result)
+
+def draw_plot(values, title):
+    # візуалізація озера за допомогою matplotlib.
+    depth, (start, end), bottom = find_deepest_lake(values)
+    x = list(range(len(values)))
+
+    plt.figure(figsize=(10, 5))
+    # загальна лінія
+    plt.plot(x, values, color='black', linewidth=1)
+
+    # якщо озеро знайдено, вивод його на графіку
+    if depth > 0:
+        lake_x = x[start:end+1]
+        lake_y = values[start:end+1]
+
+        # виділяється озеро червоним
+        plt.plot(lake_x, lake_y, color='red', linewidth=2)
+
+        # лінія рівня води (зелена) та дна (синя)
+        water_level = min(values[start], values[end])
+        plt.hlines(water_level, start, end, colors='green', linestyles='--')
+        plt.hlines(bottom, start, end, colors='blue', linestyles=':')
+
+        # заповнення озера, типу вода
+        plt.fill_between(lake_x, lake_y, water_level, color='skyblue', alpha=0.4)
+
+    plt.title(f"{title} | Depth = {depth}")
+    plt.xlabel("Index")
+    plt.ylabel("Height")
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.show()
+
+# результат
+draw_plot(sample_values, "Sample Plot")
+draw_plot(random_values, "Random Plot")
