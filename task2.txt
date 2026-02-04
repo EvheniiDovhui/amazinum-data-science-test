@@ -1,0 +1,76 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import colors
+from IPython.display import clear_output
+import time
+
+def create_grid(size=26):
+    return np.random.choice([0, 1], size=(size, size), p=[0.8, 0.2])
+
+def update_grid(grid):
+    new_grid = grid.copy()
+    rows, cols = grid.shape
+    
+    for r in range(rows):
+        for c in range(cols):
+            total = int(np.sum(grid[max(0, r-1):min(rows, r+2), 
+                                    max(0, c-1):min(cols, c+2)])) - grid[r, c]
+            
+            if grid[r, c] == 1:
+                if total < 2 or total > 3:
+                    new_grid[r, c] = 0
+            else:
+                if total == 3:
+                    new_grid[r, c] = 1
+    return new_grid
+
+def visualize_grid(grid, step):
+    plt.figure(figsize=(8, 8))
+    
+    cmap = colors.ListedColormap(['#D3D3D3', '#38761D'])
+    
+    plt.imshow(grid, cmap=cmap)
+    
+    size = grid.shape[0]
+    plt.xticks(np.arange(-.5, size, 1), [])
+    plt.yticks(np.arange(-.5, size, 1), [])
+    plt.grid(color='white', linestyle='-', linewidth=2)
+    
+    plt.tick_params(axis='both', which='both', length=0)
+    
+    for spine in plt.gca().spines.values():
+        spine.set_visible(False)
+    
+    plt.title(f"Step: {step}", fontsize=14)
+    plt.show()
+
+
+initial_grid = create_grid(26)
+grid = initial_grid.copy()
+
+try:
+    for step in range(21):
+        clear_output(wait=True)
+        visualize_grid(grid, step)
+        
+        if step == 0:
+            time.sleep(2)
+        else:
+            time.sleep(0.1)
+            
+        if step < 20:
+            grid = update_grid(grid)
+
+except KeyboardInterrupt:
+    print("\nStopped.")
+
+print(f"PROCESS IS STOPPED IN THE STEP {step}")
+
+print("\nInitial matrix (Step 0):")
+visualize_grid(initial_grid, 0)
+
+print("\nFinal matrix (Step 20):")
+visualize_grid(grid, 20)
+
+print("\nFinal matrix numbers:")
+print(grid)
