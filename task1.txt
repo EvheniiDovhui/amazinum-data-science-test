@@ -1,0 +1,64 @@
+import random
+import matplotlib.pyplot as plt
+
+random_values = [random.randint(0, 26) for _ in range(26)]
+
+sample_values = [
+    2, 7, 25, 14, 14, 21, 20, 6, 13, 3, 23, 14, 1,
+    8, 1, 8, 16, 21, 2, 17, 7, 5, 20, 17, 18, 10
+]
+
+def find_deepest_lake(heights):
+    max_depth = 0
+    lake_bounds = (0, 0)
+    lake_bottom = 0
+    n = len(heights)
+
+    for left in range(n):
+        for right in range(left + 2, n):
+            water_level = min(heights[left], heights[right])
+            inside = heights[left + 1:right]
+
+            if inside and all(h < water_level for h in inside):
+                bottom = min(inside)
+                depth = water_level - bottom
+                width = right - left
+
+                if (depth > max_depth) or (depth == max_depth and width < (lake_bounds[1] - lake_bounds[0])):
+                    max_depth = depth
+                    lake_bounds = (left, right)
+                    lake_bottom = bottom
+
+    return max_depth, lake_bounds, lake_bottom
+
+depth_result, _, _ = find_deepest_lake(sample_values)
+print("Result for the provided sample:", depth_result)
+
+def draw_plot(values, title):
+    depth, (start, end), bottom = find_deepest_lake(values)
+    x = list(range(len(values)))
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(x, values, color='black', linewidth=1)
+
+    if depth > 0:
+        lake_x = x[start:end+1]
+        lake_y = values[start:end+1]
+
+        plt.plot(lake_x, lake_y, color='red', linewidth=2)
+
+        water_level = min(values[start], values[end])
+        plt.hlines(water_level, start, end, colors='green', linestyles='--')
+        plt.hlines(bottom, start, end, colors='blue', linestyles=':')
+
+        plt.fill_between(lake_x, lake_y, water_level, color='skyblue', alpha=0.4)
+
+    plt.title(f"{title} | Depth = {depth}")
+    plt.xlabel("Index")
+    plt.ylabel("Height")
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.show()
+
+draw_plot(sample_values, "Sample Plot")
+
+draw_plot(random_values, "Random Plot")
